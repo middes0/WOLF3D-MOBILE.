@@ -46,6 +46,8 @@ footer{font-size:10px;color:#777;text-align:center;padding:0 8px 5px;background:
   <div class="actions">
     <button class="control fire" data-key="Control" aria-label="Atirar">ATIRAR</button>
     <button class="control" data-key=" " aria-label="Abrir porta">ABRIR<br>PORTA</button>
+    <button class="control" data-menu-key="ArrowUp" aria-label="Menu: opção anterior">MENU ▲</button>
+    <button class="control" data-menu-key="ArrowDown" aria-label="Menu: próxima opção">MENU ▼</button>
     <button class="control" data-key="Enter" aria-label="Selecionar no menu">SELECIONAR</button>
     <button class="control" data-key="Escape" aria-label="Pausar">PAUSAR</button>
     <button class="control" id="fullscreen">TELA<br>CHEIA</button>
@@ -61,6 +63,19 @@ footer{font-size:10px;color:#777;text-align:center;padding:0 8px 5px;background:
  const loading=document.getElementById('loading');
  let ci=null;
  const keyCodes={'ArrowUp':265,'ArrowDown':264,'ArrowLeft':263,'ArrowRight':262,' ':32,'Control':341,'Escape':256,'Enter':257};
+ function menuPress(key){
+   const code=keyCodes[key];
+   if(ci && code!==undefined && typeof ci.simulateKeyPress==='function') ci.simulateKeyPress(code);
+   else { sendKey('keydown',key); setTimeout(()=>sendKey('keyup',key),100); }
+ }
+ document.querySelectorAll('[data-menu-key]').forEach(btn=>{
+   btn.addEventListener('pointerdown',e=>{
+     e.preventDefault();
+     btn.classList.add('down');
+     menuPress(btn.dataset.menuKey);
+   });
+   ['pointerup','pointercancel','pointerleave'].forEach(t=>btn.addEventListener(t,()=>btn.classList.remove('down')));
+ });
  function sendKey(type,key){
    const code=keyCodes[key];
    if(ci && code!==undefined) ci.sendKeyEvent(code,type==='keydown');
@@ -101,9 +116,7 @@ footer{font-size:10px;color:#777;text-align:center;padding:0 8px 5px;background:
  Dos(canvas,{wdosboxUrl:base+'wdosbox.js',onerror:(message)=>{loading.innerHTML='<strong>Erro no emulador</strong><span>'+String(message||'Falha na inicialização')+'</span>'}}).ready((fs,main)=>{
    fs.extract(game+'wolf3d.zip').then(()=>{
      loading.style.display='none';
-     const result=main(['-c','WOLF3D.EXE']);
-     if(result && typeof result.then==='function') result.then(instance=>{if(instance&&typeof instance.sendKeyEvent==='function')ci=instance;});
-     else if(result&&typeof result.sendKeyEvent==='function') ci=result;
+     Promise.resolve(main(['-c','WOLF3D.EXE'])).then(instance=>{if(instance&&typeof instance.sendKeyEvent==='function')ci=instance;});
    }).catch(()=>{loading.innerHTML='<strong>Falha ao carregar</strong><span>Não foi possível carregar os arquivos do jogo.</span>'});
  }).catch(()=>{loading.innerHTML='<strong>Falha ao iniciar</strong><span>Recarregue a página e tente novamente.</span>'});
 })();;
