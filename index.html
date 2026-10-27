@@ -58,16 +58,29 @@ footer{font-size:10px;color:#777;text-align:center;padding:0 8px 5px;background:
  const game='https://raw.githubusercontent.com/menene/wolf3d-jsdos/main/';
  const canvas=document.getElementById('jsdos');
  const loading=document.getElementById('loading');
- function keyEvent(type,key){
-   const e=new KeyboardEvent(type,{key:key,code:key===' '?'Space':key==='Control'?'ControlLeft':key==='Escape'?'Escape':key,bubbles:true,cancelable:true});
-   document.dispatchEvent(e); window.dispatchEvent(new KeyboardEvent(type,{key:key,bubbles:true,cancelable:true}));
- }
+ let ci=null;
+ const keyCodes={'ArrowUp':265,'ArrowDown':264,'ArrowLeft':263,'ArrowRight':262,' ':32,'Control':341,'Escape':256};
  document.querySelectorAll('[data-key]').forEach(btn=>{
    const key=btn.dataset.key;
-   const start=e=>{e.preventDefault();btn.classList.add('down');try{btn.setPointerCapture(e.pointerId)}catch(_){}keyEvent('keydown',key)};
-   const stop=e=>{e.preventDefault();btn.classList.remove('down');keyEvent('keyup',key)};
-   btn.addEventListener('pointerdown',start);
-   ['pointerup','pointercancel','lostpointercapture'].forEach(t=>btn.addEventListener(t,stop));
+   let pressed=false;
+   const startPress=e=>{
+     e.preventDefault();
+     if(pressed)return;
+     pressed=true;
+     btn.classList.add('down');
+     try{btn.setPointerCapture(e.pointerId)}catch(_){}
+     if(ci)ci.sendKeyEvent(keyCodes[key],true);
+   };
+   const stopPress=e=>{
+     if(e)e.preventDefault();
+     if(!pressed)return;
+     pressed=false;
+     btn.classList.remove('down');
+     if(ci)ci.sendKeyEvent(keyCodes[key],false);
+   };
+   btn.addEventListener('pointerdown',startPress);
+   ['pointerup','pointercancel','lostpointercapture','pointerleave'].forEach(t=>btn.addEventListener(t,stopPress));
+   btn.addEventListener('contextmenu',e=>e.preventDefault());
  });
  document.getElementById('fullscreen').addEventListener('click',()=>{
    const target=document.documentElement;
@@ -76,8 +89,10 @@ footer{font-size:10px;color:#777;text-align:center;padding:0 8px 5px;background:
  });
  if(typeof Dos!=='function'){loading.innerHTML='<strong>Falha ao carregar o emulador</strong><span>O navegador não conseguiu baixar o motor do jogo. Atualize a página em alguns segundos.</span>';return}
  Dos(canvas,{wdosboxUrl:base+'wdosbox.js',onerror:(message)=>{loading.innerHTML='<strong>Erro no emulador</strong><span>'+String(message||'Falha na inicialização')+'</span>'}}).ready((fs,main)=>{
-   fs.extract(game+'wolf3d.zip').then(()=>{loading.style.display='none';main(['-c','WOLF3D.EXE']);})
-   .catch(()=>{loading.innerHTML='<strong>Falha ao carregar</strong><span>Não foi possível carregar os arquivos do jogo.</span>'});
+   fs.extract(game+'wolf3d.zip').then(()=>{
+     loading.style.display='none';
+     Promise.resolve(main(['-c','WOLF3D.EXE'])).then(instance=>{ci=instance;});
+   }).catch(()=>{loading.innerHTML='<strong>Falha ao carregar</strong><span>Não foi possível carregar os arquivos do jogo.</span>'});
  }).catch(()=>{loading.innerHTML='<strong>Falha ao iniciar</strong><span>Recarregue a página e tente novamente.</span>'});
 })();
 </script>
