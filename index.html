@@ -51,10 +51,10 @@ footer{font-size:10px;color:#777;text-align:center;padding:0 8px 5px;background:
   </div>
 </section>
 <footer>Use os botões de toque. Melhor em modo paisagem.</footer>
-<script src="https://raw.githubusercontent.com/menene/wolf3d-jsdos/main/js-dos.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/menene/wolf3d-jsdos@main/js-dos.js"></script>
 <script>
 (function(){
- const base='https://raw.githubusercontent.com/menene/wolf3d-jsdos/main/';
+ const base='https://cdn.jsdelivr.net/gh/menene/wolf3d-jsdos@main/';
  const canvas=document.getElementById('jsdos');
  const loading=document.getElementById('loading');
  function keyEvent(type,key){
@@ -73,7 +73,7 @@ footer{font-size:10px;color:#777;text-align:center;padding:0 8px 5px;background:
    if(!document.fullscreenElement && target.requestFullscreen) target.requestFullscreen().catch(()=>{});
    else if(document.exitFullscreen) document.exitFullscreen().catch(()=>{});
  });
- if(typeof Dos!=='function'){loading.innerHTML='<strong>Não foi possível iniciar</strong><span>Recarregue a página e verifique a conexão.</span>';return}
+ if(typeof Dos!=='function'){loading.innerHTML='<strong>Falha ao carregar o emulador</strong><span>O navegador não conseguiu baixar o motor do jogo. Atualize a página em alguns segundos.</span>';return}
  Dos(canvas,{wdosboxUrl:base+'wdosbox.js'}).ready((fs,main)=>{
    fs.extract(base+'wolf3d.zip').then(()=>{loading.style.display='none';main(['-c','WOLF3D.EXE']);})
    .catch(()=>{loading.innerHTML='<strong>Falha ao carregar</strong><span>Não foi possível carregar os arquivos do jogo.</span>'});
